@@ -5,10 +5,20 @@
         <script>
 
 %PAGES%
-        
+
+function update(page) {
+    $('body').html( pages[page].body )
+    $('title').html( pages[page].title )
+    
+    $('a').click(function() { 
+        href = $(this).attr('href')
+        update(href);
+        return false;
+    });
+}
+
 $(document).ready( function() {
-    $('body').html( pages[0].body )
-    $('title').html( pages[0].title )
+    update('index.html')
 });                
         </script>        
     <head>
