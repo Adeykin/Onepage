@@ -10,7 +10,9 @@ class Page:
         f = file(path)
         data = f.read()
         soup = BeautifulSoup(data)
-
+             
+        self.links = soup.html.head('link')
+       
         self.titleTag = soup.html.head.title
         self.bodyTag = soup.html.body
         
@@ -20,6 +22,12 @@ class Page:
     def getBody(self):
         body = ''.join(['%s' % x for x in self.bodyTag.contents])
         return body.replace('\n','\\\n')        
+        
+    def getStyles(self):
+        if self.links:
+            return ''.join( list(map(lambda link: str(link), self.links)) )
+        else:
+            return ''
         
     def getLinks(self):
         links = self.bodyTag('a')
@@ -42,12 +50,17 @@ class Parser:
             if not link in self.pages:
                 self.parsePage(link)
     
+def pageToJS(page):
+    buf = 'title: \'' + str(page.getTitle()) \
+        + '\', styles: \'' + str(page.getStyles()) \
+        + '\', body:\'' + str(page.getBody())
+    return buf    
+    
 def pagesToJS(pages):
     buf = 'var pages = {'
     lines = []
     for pageIndex, pageVal in pages.iteritems():
-        lines.append( '\'' + pageIndex + '\' :'  '{title: \'' + str(pageVal.getTitle()) + 
-                '\', body:\'' + str(pageVal.getBody()) + '\'}')
+        lines.append( '\'' + pageIndex + '\' : {'  + pageToJS(pageVal) +  '\'}')    
     buf +=','.join(lines)
     buf += '}'
     return buf    

@@ -7,6 +7,10 @@
 %PAGES%
 
 function update(page) {
+    $('head').empty()
+    $('body').empty()
+
+    $('head').append( pages[page].styles );
     $('body').html( pages[page].body )
     $('title').html( pages[page].title )
     
