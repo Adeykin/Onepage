@@ -3,7 +3,10 @@ from BeautifulSoup import BeautifulSoup
 
 def help():
     print "onepage.py <index.html> <output.html>"
-
+    
+def wrapString(text):
+    return text.replace('\n','\\\n')
+    
 class Page:
     def __init__(self, path):
         print ']] Parsing: ' + path
@@ -21,11 +24,12 @@ class Page:
         
     def getBody(self):
         body = ''.join(['%s' % x for x in self.bodyTag.contents])
-        return body.replace('\n','\\\n')        
+        return wrapString(body)
         
     def getStyles(self):
         if self.links:
-            return ''.join( list(map(lambda link: str(link), self.links)) )
+            linksStr = ''.join( list(map(lambda link: str(link), self.links)) )
+            return wrapString(linksStr)
         else:
             return ''
         
