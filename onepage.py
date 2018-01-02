@@ -8,13 +8,18 @@ def wrapString(text):
     return text.replace('\n','\\\n')
     
 class Page:
-    def __init__(self, path):
-        print ']] Parsing: ' + path
-        f = file(path)
+    def __init__(self, pagePath, pageName):
+        self.path = pagePath + '/' + pageName
+        self.pagePath = pagePath
+        self.pageName = pageName
+        print ']] Parsing: ' + self.path
+        f = file(self.path)
         data = f.read()
         soup = BeautifulSoup(data)
              
-        self.links = soup.html.head('link')
+        cssTags = soup.html.head(['link', 'style'])
+        #TODO: add filter
+        self.styles = list(map(lambda tag: self.__processCSS(tag), cssTags))
        
         self.titleTag = soup.html.head.title
         self.bodyTag = soup.html.body
@@ -27,15 +32,24 @@ class Page:
         return wrapString(body)
         
     def getStyles(self):
-        if self.links:
-            linksStr = ''.join( list(map(lambda link: str(link), self.links)) )
-            return wrapString(linksStr)
-        else:
-            return ''
+        return wrapString( ''.join(self.styles) )
         
     def getLinks(self):
         links = self.bodyTag('a')
         return list(map(lambda link: link['href'], links))
+        
+    def __processCSS(self, tag):
+        if tag.name == 'link':
+            fileName =  tag['href']
+            filePath = self.pagePath + '/' + fileName
+            f = file(filePath)
+            css = f.read()
+            return '<style type="text/css">' + css + '</style>' 
+        elif tag.name == 'style':
+            return str(tag)
+        else:
+            print 'ERROR'
+            quit()
        
 class Parser:
     def __init__(self, indexPath, indexName):
@@ -47,7 +61,7 @@ class Parser:
         self.parsePage(self.indexName)
         
     def parsePage(self, name):
-        page = Page(self.indexPath + '/' + name)
+        page = Page(self.indexPath, name)
         self.pages[name] = page
         links = page.getLinks()
         for link in links:
