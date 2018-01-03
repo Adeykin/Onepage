@@ -1,4 +1,6 @@
 import sys
+import base64
+import mimetypes
 from BeautifulSoup import BeautifulSoup  
 
 def help():
@@ -22,7 +24,13 @@ class Page:
         self.styles = list(map(lambda tag: self.__processCSS(tag), cssTags))
        
         self.titleTag = soup.html.head.title
-        self.bodyTag = soup.html.body
+        #self.bodyTag = soup.html.body
+        
+        body = soup.html.body
+        for img in body('img'):
+            img['src'] = self.__processImage(img['src'])
+            
+        self.bodyTag = body
         
     def getTitle(self):
         return self.titleTag.string
@@ -50,6 +58,12 @@ class Page:
         else:
             print 'ERROR'
             quit()
+            
+    def __processImage(self, src):
+        mimetype = mimetypes.guess_type(src)
+        f = file(self.pagePath + '/' + src)
+        data = f.read()
+        return 'data:' + mimetype[0] + ';base64,' + base64.b64encode(data)
        
 class Parser:
     def __init__(self, indexPath, indexName):
