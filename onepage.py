@@ -1,13 +1,20 @@
-import sys
+import os, sys
 import base64
 import mimetypes
-from BeautifulSoup import BeautifulSoup  
+import urlparse
+from bs4 import BeautifulSoup, SoupStrainer
 
 def help():
     print "onepage.py <index.html> <output.html>"
     
 def wrapString(text):
-    return text.replace('\n','\\\n')
+    return text.replace('\'','\\\'').replace('\n','\\\n')
+    
+def isInternalLink(link):
+    return urlparse.urlparse(link).netloc == ''
+
+def isJavaScriptLink(link):
+    return link.split(':')[0].lower() == 'javascript'
     
 class Page:
     def __init__(self, pagePath, pageName):
@@ -17,7 +24,7 @@ class Page:
         print ']] Parsing: ' + self.path
         f = file(self.path)
         data = f.read()
-        soup = BeautifulSoup(data)
+        soup = BeautifulSoup(data, 'lxml')
              
         cssTags = soup.html.head(['link', 'style'])
         #TODO: add filter
@@ -44,6 +51,7 @@ class Page:
         
     def getLinks(self):
         links = self.bodyTag('a')
+        links = list(filter(lambda link: link.has_attr('href'), links))
         return list(map(lambda link: link['href'], links))
         
     def __processCSS(self, tag):
@@ -60,6 +68,7 @@ class Page:
             quit()
             
     def __processImage(self, src):
+        #TODO: internet url support
         mimetype = mimetypes.guess_type(src)
         f = file(self.pagePath + '/' + src)
         data = f.read()
@@ -79,7 +88,10 @@ class Parser:
         self.pages[name] = page
         links = page.getLinks()
         for link in links:
-            if not link in self.pages:
+            if not link in self.pages and isInternalLink(link) and not isJavaScriptLink(link):
+                if not os.path.exists(self.indexPath + '/' + link): #TODO: refactor it
+                    print "[Warning] File doesnt exist: " + self.indexPath + '/' + link
+                    continue
                 self.parsePage(link)
     
 def pageToJS(page):
