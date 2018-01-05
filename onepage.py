@@ -31,11 +31,21 @@ class Page:
         self.styles = list(map(lambda tag: self.__processCSS(tag), cssTags))
        
         self.titleTag = soup.html.head.title
-        #self.bodyTag = soup.html.body
         
         body = soup.html.body
         for img in body('img'):
             img['src'] = self.__processImage(img['src'])
+            
+        #preprocess links
+        links = body('a')
+        for link in links:
+            if not link.has_attr('href'):
+                continue
+            linkUrl = link['href']
+            if isInternalLink(linkUrl) and not isJavaScriptLink(linkUrl):
+                print link
+                link['class'] = 'op_internal_link'
+                #link.attrs.append(('class', 'op_internal_link'))
             
         self.bodyTag = body
         

@@ -15,9 +15,12 @@ function update(page) {
     $('title').html( pages[page].title )
     
     $('a').click(function() { 
-        href = $(this).attr('href')
-        update(href);
-        return false;
+        if( $(this).attr('class') == 'op_internal_link' ) {
+            href = $(this).attr('href')
+            update(href);
+            return false;
+        }
+        return true;
     });
 }
 
