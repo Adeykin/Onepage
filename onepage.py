@@ -1,8 +1,10 @@
+#!/usr/bin/python
+
 import os, sys
 import base64
 import mimetypes
 import urlparse
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer, Comment
 
 def help():
     print "onepage.py <index.html> <output.html>"
@@ -24,7 +26,12 @@ class Page:
         print ']] Parsing: ' + self.path
         f = file(self.path)
         data = f.read()
+        data = data.decode('utf8')
         soup = BeautifulSoup(data, 'lxml')
+        
+        #exculude commensts
+        comments = soup.findAll(text=lambda text:isinstance(text, Comment))
+        [comment.extract() for comment in comments]
              
         cssTags = soup.html.head(['link', 'style'])
         #TODO: add filter
@@ -53,7 +60,7 @@ class Page:
         return self.titleTag.string
         
     def getBody(self):
-        body = ''.join(['%s' % x for x in self.bodyTag.contents])
+        body = ''.join([str(x) for x in self.bodyTag.contents])
         return wrapString(body)
         
     def getStyles(self):
