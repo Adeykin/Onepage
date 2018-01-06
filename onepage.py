@@ -10,7 +10,7 @@ def help():
     print "onepage.py <index.html> <output.html>"
     
 def wrapString(text):
-    return text.replace('\'','\\\'').replace('\n','\\\n')
+    return text.replace('\'','\\\'').replace('\n','\\\n').replace('script','scr\'+\'ipt')
     
 def isInternalLink(link):
     return urlparse.urlparse(link).netloc == ''
