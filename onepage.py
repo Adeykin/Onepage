@@ -18,6 +18,8 @@ def isInternalLink(link):
 def isJavaScriptLink(link):
     return link.split(':')[0].lower() == 'javascript'
     
+# Note: all pathes from current dir
+# TODO: join pathPath and pageName
 class Page:
     def __init__(self, pagePath, pageName):
         self.path = pagePath + '/' + pageName
@@ -71,6 +73,9 @@ class Page:
         links = list(filter(lambda link: link.has_attr('href'), links))
         return list(map(lambda link: link['href'], links))
         
+    def getFolder(self):
+        return os.path.dirname(self.path)
+        
     def __processCSS(self, tag):
         if tag.name == 'link':
             fileName =  tag['href']
@@ -100,16 +105,37 @@ class Parser:
     def parse(self):
         self.parsePage(self.indexName)
         
+    # name - path to file from indexPath
     def parsePage(self, name):
-        page = Page(self.indexPath, name)
+        base, fileName = os.path.split(name)
+        print '}} ' + name + ' ' + base + ' ' + fileName
+        page = Page(self.indexPath + '/' + base, fileName)
         self.pages[name] = page
         links = page.getLinks()
+        folder = page.getFolder()
         for link in links:
-            if not link in self.pages and isInternalLink(link) and not isJavaScriptLink(link):
-                if not os.path.exists(self.indexPath + '/' + link): #TODO: refactor it
-                    print "[Warning] File doesnt exist: " + self.indexPath + '/' + link
-                    continue
-                self.parsePage(link)
+            if isInternalLink(link) and not isJavaScriptLink(link):
+                print 'folder: ' + folder
+                normLink = os.path.normpath(folder + '/' + link)
+                print 'normLink: ' + normLink
+                fromIndexLink = self.pathFromIndex(normLink)
+                if not fromIndexLink in self.pages:
+                    if not os.path.exists(normLink): #TODO: refactor it
+                        print "[Warning] File doesnt exist: " + normLink
+                        continue
+                    self.parsePage(fromIndexLink)
+
+    def getAbsPath(self, name):
+        return os.path.abspath()
+        
+    def pathFromIndex(self, path):
+        print '[pathFromIndex] path = ' + path
+        norm = os.path.normpath(path)
+        print '[pathFromIndex] norm = ' + norm
+        fromIndex = os.path.relpath(norm, self.indexPath)
+        print '[pathFromIndex] fromIndex = ' + fromIndex
+        return fromIndex
+        
     
 def pageToJS(page):
     buf = 'title: \'' + str(page.getTitle()) \
