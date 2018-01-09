@@ -55,9 +55,7 @@ class Page:
             if isInternalLink(linkUrl) and not isJavaScriptLink(linkUrl):
                 print link
                 link['class'] = 'op_internal_link'
-                print 'Link was ' + linkUrl
                 linkUrl = parser.pathFromIndex(self.pagePath + '/' + linkUrl)
-                print 'Link become ' + linkUrl
                 link['hrefAbs'] = linkUrl
                 #link.attrs.append(('class', 'op_internal_link'))
             
@@ -113,35 +111,24 @@ class Parser:
     # name - path to file from indexPath
     def parsePage(self, name):
         base, fileName = os.path.split(name)
-        print '}} ' + name + ' ' + base + ' ' + fileName
         page = Page(self, self.indexPath + '/' + base, fileName)
         self.pages[name] = page
         links = page.getLinks()
         folder = page.getFolder()
         for link in links:
             if isInternalLink(link) and not isJavaScriptLink(link):
-                print 'folder: ' + folder
                 normLink = os.path.normpath(folder + '/' + link)
-                print 'normLink: ' + normLink
                 fromIndexLink = self.pathFromIndex(normLink)
                 if not fromIndexLink in self.pages:
                     if not os.path.exists(normLink): #TODO: refactor it
                         print "[Warning] File doesnt exist: " + normLink
                         continue
                     self.parsePage(fromIndexLink)
-
-    def getAbsPath(self, name):
-        return os.path.abspath()
         
     # path - from currentPath
     def pathFromIndex(self, path):
-        print '[pathFromIndex] path = ' + path
         norm = os.path.normpath(path)
-        print '[pathFromIndex] norm = ' + norm
-        fromIndex = os.path.relpath(norm, self.indexPath)
-        print '[pathFromIndex] fromIndex = ' + fromIndex
-        return fromIndex
-        
+        return os.path.relpath(norm, self.indexPath)        
     
 def pageToJS(page):
     buf = 'title: \'' + str(page.getTitle()) \
