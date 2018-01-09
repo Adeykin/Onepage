@@ -14,9 +14,12 @@ function update(page) {
     $('body').html( pages[page].body )
     $('title').html( pages[page].title )
     
+    //console.log( 'STYLES: ' + pages[page].body )
+    //console.log( 'BODY: ' + pages[page].body )
+    
     $('a').click(function() { 
         if( $(this).attr('class') == 'op_internal_link' ) {
-            href = $(this).attr('href')
+            href = $(this).attr('hrefAbs')
             update(href);
             return false;
         }

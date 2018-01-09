@@ -21,7 +21,8 @@ def isJavaScriptLink(link):
 # Note: all pathes from current dir
 # TODO: join pathPath and pageName
 class Page:
-    def __init__(self, pagePath, pageName):
+    def __init__(self, parser, pagePath, pageName):
+        self.parser = parser
         self.path = pagePath + '/' + pageName
         self.pagePath = pagePath
         self.pageName = pageName
@@ -54,6 +55,10 @@ class Page:
             if isInternalLink(linkUrl) and not isJavaScriptLink(linkUrl):
                 print link
                 link['class'] = 'op_internal_link'
+                print 'Link was ' + linkUrl
+                linkUrl = parser.pathFromIndex(self.pagePath + '/' + linkUrl)
+                print 'Link become ' + linkUrl
+                link['hrefAbs'] = linkUrl
                 #link.attrs.append(('class', 'op_internal_link'))
             
         self.bodyTag = body
@@ -109,7 +114,7 @@ class Parser:
     def parsePage(self, name):
         base, fileName = os.path.split(name)
         print '}} ' + name + ' ' + base + ' ' + fileName
-        page = Page(self.indexPath + '/' + base, fileName)
+        page = Page(self, self.indexPath + '/' + base, fileName)
         self.pages[name] = page
         links = page.getLinks()
         folder = page.getFolder()
@@ -128,6 +133,7 @@ class Parser:
     def getAbsPath(self, name):
         return os.path.abspath()
         
+    # path - from currentPath
     def pathFromIndex(self, path):
         print '[pathFromIndex] path = ' + path
         norm = os.path.normpath(path)
